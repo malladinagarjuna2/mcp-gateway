@@ -718,7 +718,9 @@ func (s *ExtProcServer) initializeMCPServerSession(ctx context.Context, mcpReq *
 					key == "mcp-init-host" ||
 					key == RoutingKey ||
 					key == mcpAuthorizedHeader ||
-					key == mcpVirtualServerHeader {
+					key == mcpVirtualServerHeader ||
+					key == "accept" ||
+					key == "content-type" {
 					continue
 				}
 				passThroughHeaders[h.Key] = string(h.RawValue)

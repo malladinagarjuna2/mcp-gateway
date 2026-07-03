@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	mcpv1alpha1 "github.com/Kuadrant/mcp-gateway/api/v1alpha1"
+	mcpv1 "github.com/Kuadrant/mcp-gateway/api/v1"
 	"github.com/Kuadrant/mcp-gateway/internal/config"
 	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,7 +28,7 @@ func (m *mockVirtualServerConfigReaderWriter) WriteVirtualServerConfig(_ context
 
 func newVirtualServerReconciler(mock *mockVirtualServerConfigReaderWriter, objs ...client.Object) *MCPVirtualServerReconciler {
 	scheme := runtime.NewScheme()
-	_ = mcpv1alpha1.AddToScheme(scheme)
+	_ = mcpv1.AddToScheme(scheme)
 
 	fakeClient := fake.NewClientBuilder().
 		WithScheme(scheme).
@@ -48,25 +48,25 @@ func TestReconcile_VirtualServerDeletion_WritesConfig(t *testing.T) {
 	now := metav1.NewTime(time.Now())
 
 	// the virtual server being deleted — has DeletionTimestamp and the finalizer
-	deleting := &mcpv1alpha1.MCPVirtualServer{
+	deleting := &mcpv1.MCPVirtualServer{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              "vs-deleting",
 			Namespace:         "ns",
 			DeletionTimestamp: &now,
 			Finalizers:        []string{mcpGatewayFinalizer},
 		},
-		Spec: mcpv1alpha1.MCPVirtualServerSpec{
+		Spec: mcpv1.MCPVirtualServerSpec{
 			Tools: []string{"tool_a"},
 		},
 	}
 
 	// a second virtual server that should remain
-	remaining := &mcpv1alpha1.MCPVirtualServer{
+	remaining := &mcpv1.MCPVirtualServer{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "vs-remaining",
 			Namespace: "ns",
 		},
-		Spec: mcpv1alpha1.MCPVirtualServerSpec{
+		Spec: mcpv1.MCPVirtualServerSpec{
 			Tools: []string{"tool_b"},
 		},
 	}
@@ -105,14 +105,14 @@ func TestReconcile_VirtualServerDeletion_WritesConfig(t *testing.T) {
 func TestReconcile_VirtualServerDeletion_EmptyConfigWhenLast(t *testing.T) {
 	now := metav1.NewTime(time.Now())
 
-	last := &mcpv1alpha1.MCPVirtualServer{
+	last := &mcpv1.MCPVirtualServer{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              "vs-last",
 			Namespace:         "ns",
 			DeletionTimestamp: &now,
 			Finalizers:        []string{mcpGatewayFinalizer},
 		},
-		Spec: mcpv1alpha1.MCPVirtualServerSpec{
+		Spec: mcpv1.MCPVirtualServerSpec{
 			Tools: []string{"tool_a"},
 		},
 	}

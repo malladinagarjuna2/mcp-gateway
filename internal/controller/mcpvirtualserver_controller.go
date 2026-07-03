@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	mcpv1alpha1 "github.com/Kuadrant/mcp-gateway/api/v1alpha1"
+	mcpv1 "github.com/Kuadrant/mcp-gateway/api/v1"
 	"github.com/Kuadrant/mcp-gateway/internal/config"
 )
 
@@ -44,7 +44,7 @@ var defaultRequeueTime = time.Second * 2
 func (r *MCPVirtualServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
-	mcpVS := &mcpv1alpha1.MCPVirtualServer{}
+	mcpVS := &mcpv1.MCPVirtualServer{}
 	if err := r.Get(ctx, req.NamespacedName, mcpVS); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
@@ -107,7 +107,7 @@ func (r *MCPVirtualServerReconciler) Reconcile(ctx context.Context, req ctrl.Req
 func (r *MCPVirtualServerReconciler) generateVirtualServerConfig(ctx context.Context) ([]config.VirtualServerConfig, error) {
 	log := log.FromContext(ctx)
 	virtualServers := []config.VirtualServerConfig{}
-	mcpVirtualServerList := &mcpv1alpha1.MCPVirtualServerList{}
+	mcpVirtualServerList := &mcpv1.MCPVirtualServerList{}
 	if err := r.List(ctx, mcpVirtualServerList); err != nil {
 		log.Error(err, "Failed to list MCPVirtualServers")
 		return virtualServers, err
@@ -132,7 +132,7 @@ func (r *MCPVirtualServerReconciler) SetupWithManager(_ context.Context, mgr ctr
 	r.log = slog.New(logr.ToSlogHandler(mgr.GetLogger()))
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&mcpv1alpha1.MCPVirtualServer{}).
+		For(&mcpv1.MCPVirtualServer{}).
 		Named("mcpvirtualserver").
 		Complete(r)
 }

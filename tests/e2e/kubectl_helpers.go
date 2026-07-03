@@ -231,7 +231,11 @@ func SetURLElicitation(namespace, name string, enabled bool) error {
 		value = "Enabled"
 	}
 	ctx := context.Background()
-	patch := fmt.Sprintf(`{"spec":{"urlElicitation":"%s"}}`, value)
+	// Workaround: Inject experimental extension data as an annotation directly via patch.
+	// This simulates the v1alpha1->v1 conversion webhook which isn't running in E2E.
+	annotationValue := fmt.Sprintf(`{"urlElicitation":"%s"}`, value)
+	escapedAnnotation := strings.ReplaceAll(annotationValue, `"`, `\"`)
+	patch := fmt.Sprintf(`{"metadata":{"annotations":{"mcp.kuadrant.io/experimental-extension":"%s"}}}`, escapedAnnotation)
 	cmd := exec.CommandContext(ctx, "kubectl", "patch", "mcpgatewayextension", name,
 		"-n", namespace, "--type=merge", "-p", patch)
 	output, err := cmd.CombinedOutput()

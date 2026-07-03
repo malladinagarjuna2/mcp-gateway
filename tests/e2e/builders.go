@@ -4,6 +4,7 @@ package e2e
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -304,6 +305,25 @@ func (b *TestResourcesBuilder) Build() *TestResourcesBuilder {
 	}
 	if b.userSpecificList != "" {
 		b.mcpServer.Spec.UserSpecificList = b.userSpecificList
+	}
+	
+	// Workaround: Inject experimental discovery data as an annotation directly in the test builder.
+	// This simulates the behavior of the v1alpha1 -> v1 conversion webhook which is currently not 
+	// running in the E2E cluster. Without this, the UserSpecificList field is silently dropped.
+	if b.tokenURLElicitation != nil || b.userSpecificList != "" {
+		expData := struct {
+			TokenURLElicitation *mcpv1alpha1.TokenURLElicitationConfig `json:"tokenURLElicitation,omitempty"`
+			UserSpecificList    mcpv1alpha1.UserSpecificListPolicy     `json:"userSpecificList,omitempty"`
+		}{
+			TokenURLElicitation: b.tokenURLElicitation,
+			UserSpecificList:    b.userSpecificList,
+		}
+		if expB, err := json.Marshal(expData); err == nil {
+			if b.mcpServer.Annotations == nil {
+				b.mcpServer.Annotations = make(map[string]string)
+			}
+			b.mcpServer.Annotations["mcp.kuadrant.io/experimental-discovery"] = string(expB)
+		}
 	}
 
 	if len(b.category) > 0 {
